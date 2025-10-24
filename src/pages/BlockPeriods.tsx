@@ -246,7 +246,7 @@ const BlockPeriods = () => {
                       </div>
                     </CardContent>
                   </Card>
-                ))
+                ))}
               </div>
             )}
           </CardContent>

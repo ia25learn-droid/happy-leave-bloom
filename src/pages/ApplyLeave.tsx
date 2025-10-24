@@ -13,7 +13,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { format, eachDayOfInterval, startOfDay } from 'date-fns';
 import { CalendarIcon, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
-import { leaveTypes } from '@/lib/leaveTypes';
+import { leaveTypes, LeaveType } from '@/lib/leaveTypes';
 import TeamStrength from '@/components/TeamStrength';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
@@ -25,7 +25,7 @@ interface BlockPeriod {
 
 const ApplyLeave = () => {
   const { user } = useAuth();
-  const [leaveType, setLeaveType] = useState('');
+  const [leaveType, setLeaveType] = useState<LeaveType | ''>('');
   const [startDate, setStartDate] = useState<Date>();
   const [endDate, setEndDate] = useState<Date>();
   const [reason, setReason] = useState('');
@@ -109,19 +109,24 @@ const ApplyLeave = () => {
       return;
     }
 
+    if (!user?.id) {
+      toast.error('User not authenticated');
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
       const { error } = await supabase
         .from('leave_requests')
-        .insert({
-          user_id: user?.id,
+        .insert([{
+          user_id: user.id,
           leave_type: leaveType,
           start_date: format(startDate, 'yyyy-MM-dd'),
           end_date: format(endDate, 'yyyy-MM-dd'),
           reason,
           status: 'pending'
-        });
+        }]);
 
       if (error) throw error;
 
@@ -166,7 +171,7 @@ const ApplyLeave = () => {
               {/* Leave Type Selection */}
               <div className="space-y-2">
                 <Label htmlFor="leave-type">Leave Type</Label>
-                <Select value={leaveType} onValueChange={setLeaveType}>
+                <Select value={leaveType} onValueChange={(value) => setLeaveType(value as LeaveType)}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select a leave type" />
                   </SelectTrigger>
