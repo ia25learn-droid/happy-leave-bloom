@@ -117,8 +117,8 @@ const ApplyLeave = () => {
     setIsSubmitting(true);
 
     try {
-      // Auto-approve if user is an approver or admin
-      const isApprover = hasRole('approver') || hasRole('admin');
+      // Auto-approve only if user is an approver (not admin)
+      const isApprover = hasRole('approver');
       const requestStatus = isApprover ? 'approved' : 'pending';
 
       const { error } = await supabase
