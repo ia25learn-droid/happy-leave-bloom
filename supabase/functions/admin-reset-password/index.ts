@@ -58,27 +58,29 @@ serve(async (req) => {
       );
     }
 
-    console.log('Admin', user.email, 'initiating password reset for:', email);
+    console.log('Admin', user.email, 'generating password reset link for:', email);
 
-    // Generate password reset link
-    const { data, error } = await supabaseAdmin.auth.resetPasswordForEmail(email, {
-      redirectTo: `${Deno.env.get('SUPABASE_URL')}/auth/v1/verify`,
+    // Generate password reset link (without sending email)
+    const { data, error } = await supabaseAdmin.auth.admin.generateLink({
+      type: 'recovery',
+      email: email,
     });
 
     if (error) {
-      console.error('Failed to send password reset:', error);
+      console.error('Failed to generate password reset link:', error);
       return new Response(
         JSON.stringify({ error: error.message }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    console.log('Password reset email sent successfully to:', email);
+    console.log('Password reset link generated successfully for:', email);
 
     return new Response(
       JSON.stringify({ 
         success: true, 
-        message: `Password reset link sent to ${email}` 
+        resetLink: data.properties?.action_link,
+        message: `Password reset link generated for ${email}` 
       }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );

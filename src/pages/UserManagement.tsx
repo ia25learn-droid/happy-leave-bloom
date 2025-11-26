@@ -6,8 +6,15 @@ import Layout from "@/components/Layout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Mail, Shield, User, UserCog } from "lucide-react";
+import { Mail, Shield, User, UserCog, Copy, Check } from "lucide-react";
 import { toast } from "sonner";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -31,6 +38,12 @@ const UserManagement = () => {
   const [loading, setLoading] = useState(true);
   const [sendingReset, setSendingReset] = useState<string | null>(null);
   const [changingRole, setChangingRole] = useState<string | null>(null);
+  const [resetLinkDialog, setResetLinkDialog] = useState<{ open: boolean; link: string; email: string }>({
+    open: false,
+    link: "",
+    email: ""
+  });
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     if (!user) {
@@ -88,13 +101,27 @@ const UserManagement = () => {
 
       if (error) throw error;
 
-      toast.success(`Password reset link sent to ${email}! 📧`);
+      if (data?.resetLink) {
+        setResetLinkDialog({
+          open: true,
+          link: data.resetLink,
+          email: email
+        });
+        toast.success(`Password reset link generated for ${email}! 🔗`);
+      }
     } catch (error: any) {
-      toast.error(error.message || 'Failed to send password reset link');
-      console.error('Error sending password reset:', error);
+      toast.error(error.message || 'Failed to generate password reset link');
+      console.error('Error generating password reset:', error);
     } finally {
       setSendingReset(null);
     }
+  };
+
+  const handleCopyLink = () => {
+    navigator.clipboard.writeText(resetLinkDialog.link);
+    setCopied(true);
+    toast.success('Link copied to clipboard! ✨');
+    setTimeout(() => setCopied(false), 2000);
   };
 
   const handleRoleChange = async (userId: string, role: string, action: 'add' | 'remove') => {
@@ -192,7 +219,7 @@ const UserManagement = () => {
                     className="gap-2"
                   >
                     <Mail className="h-4 w-4" />
-                    {sendingReset === userProfile.id ? 'Sending...' : 'Send Password Reset Link'}
+                    {sendingReset === userProfile.id ? 'Generating...' : 'Generate Password Reset Link'}
                   </Button>
 
                   <DropdownMenu>
@@ -277,6 +304,56 @@ const UserManagement = () => {
           </Card>
         )}
       </div>
+
+      <Dialog open={resetLinkDialog.open} onOpenChange={(open) => setResetLinkDialog({ ...resetLinkDialog, open })}>
+        <DialogContent className="sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Mail className="h-5 w-5 text-primary" />
+              Password Reset Link Generated
+            </DialogTitle>
+            <DialogDescription>
+              Share this link with {resetLinkDialog.email} to reset their password
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="bg-muted/50 p-4 rounded-lg border border-border">
+              <p className="text-sm text-muted-foreground mb-2 font-medium">Reset Link:</p>
+              <p className="text-sm break-all font-mono bg-background p-3 rounded border border-border">
+                {resetLinkDialog.link}
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <Button
+                onClick={handleCopyLink}
+                className="flex-1 gap-2"
+                variant={copied ? "default" : "outline"}
+              >
+                {copied ? (
+                  <>
+                    <Check className="h-4 w-4" />
+                    Copied!
+                  </>
+                ) : (
+                  <>
+                    <Copy className="h-4 w-4" />
+                    Copy Link
+                  </>
+                )}
+              </Button>
+              <Button
+                onClick={() => setResetLinkDialog({ open: false, link: "", email: "" })}
+                variant="secondary"
+              >
+                Close
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              💡 Tip: You can share this link via messaging apps, email, or any secure channel
+            </p>
+          </div>
+        </DialogContent>
+      </Dialog>
     </Layout>
   );
 };
