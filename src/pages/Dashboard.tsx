@@ -25,8 +25,8 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [leaveRequests, setLeaveRequests] = useState<LeaveRequest[]>([]);
-  const [todayStrength, setTodayStrength] = useState({ available: 11, total: 11 });
-  const [tomorrowStrength, setTomorrowStrength] = useState({ available: 11, total: 11 });
+  const [todayStrength, setTodayStrength] = useState({ available: 10, total: 10 });
+  const [tomorrowStrength, setTomorrowStrength] = useState({ available: 10, total: 10 });
   const [profile, setProfile] = useState<any>(null);
 
   useEffect(() => {
@@ -79,8 +79,8 @@ const Dashboard = () => {
       .lte('start_date', format(tomorrow, 'yyyy-MM-dd'))
       .gte('end_date', format(tomorrow, 'yyyy-MM-dd'));
 
-    setTodayStrength({ available: 11 - (todayLeave?.length || 0), total: 11 });
-    setTomorrowStrength({ available: 11 - (tomorrowLeave?.length || 0), total: 11 });
+    setTodayStrength({ available: 10 - (todayLeave?.length || 0), total: 10 });
+    setTomorrowStrength({ available: 10 - (tomorrowLeave?.length || 0), total: 10 });
   };
 
   const handleCancelLeave = async (requestId: string) => {
