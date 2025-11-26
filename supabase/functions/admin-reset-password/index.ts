@@ -60,10 +60,19 @@ serve(async (req) => {
 
     console.log('Admin', user.email, 'generating password reset link for:', email);
 
+    // Get the origin from the request headers (where the admin is accessing from)
+    const origin = req.headers.get('origin') || req.headers.get('referer')?.split('/').slice(0, 3).join('/');
+    const redirectUrl = origin ? `${origin}/auth?reset=true` : `${Deno.env.get('SUPABASE_URL')}/auth?reset=true`;
+    
+    console.log('Using redirect URL:', redirectUrl);
+
     // Generate password reset link (without sending email)
     const { data, error } = await supabaseAdmin.auth.admin.generateLink({
       type: 'recovery',
       email: email,
+      options: {
+        redirectTo: redirectUrl
+      }
     });
 
     if (error) {
