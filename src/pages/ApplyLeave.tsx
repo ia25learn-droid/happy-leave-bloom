@@ -24,7 +24,7 @@ interface BlockPeriod {
 }
 
 const ApplyLeave = () => {
-  const { user } = useAuth();
+  const { user, hasRole } = useAuth();
   const [leaveType, setLeaveType] = useState<LeaveType | ''>('');
   const [startDate, setStartDate] = useState<Date>();
   const [endDate, setEndDate] = useState<Date>();
@@ -117,6 +117,10 @@ const ApplyLeave = () => {
     setIsSubmitting(true);
 
     try {
+      // Auto-approve if user is an approver or admin
+      const isApprover = hasRole('approver') || hasRole('admin');
+      const requestStatus = isApprover ? 'approved' : 'pending';
+
       const { error } = await supabase
         .from('leave_requests')
         .insert([{
@@ -125,13 +129,15 @@ const ApplyLeave = () => {
           start_date: format(startDate, 'yyyy-MM-dd'),
           end_date: format(endDate, 'yyyy-MM-dd'),
           reason,
-          status: 'pending'
+          status: requestStatus,
+          approved_by: isApprover ? user.id : null,
+          reviewed_at: isApprover ? new Date().toISOString() : null
         }]);
 
       if (error) throw error;
 
-      toast.success('Leave request sent! 🎉', {
-        description: 'Your approver will review it soon!'
+      toast.success(isApprover ? 'Leave approved automatically! 🎉' : 'Leave request sent! 🎉', {
+        description: isApprover ? 'Your leave has been approved!' : 'Your approver will review it soon!'
       });
 
       // Reset form
