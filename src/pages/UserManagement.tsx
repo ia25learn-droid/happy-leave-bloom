@@ -6,8 +6,16 @@ import Layout from "@/components/Layout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Mail, Shield, User } from "lucide-react";
+import { Mail, Shield, User, UserCog } from "lucide-react";
 import { toast } from "sonner";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface UserProfile {
   id: string;
@@ -22,6 +30,7 @@ const UserManagement = () => {
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [sendingReset, setSendingReset] = useState<string | null>(null);
+  const [changingRole, setChangingRole] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) {
@@ -88,6 +97,35 @@ const UserManagement = () => {
     }
   };
 
+  const handleRoleChange = async (userId: string, role: string, action: 'add' | 'remove') => {
+    setChangingRole(userId);
+    try {
+      const { data, error } = await supabase.functions.invoke('admin-change-role', {
+        body: { targetUserId: userId, role, action }
+      });
+
+      if (error) throw error;
+
+      toast.success(`Role ${role} ${action === 'add' ? 'added' : 'removed'} successfully! ✨`);
+      
+      // Refresh users list
+      await fetchUsers();
+    } catch (error: any) {
+      toast.error(error.message || `Failed to ${action} role`);
+      console.error('Error changing role:', error);
+    } finally {
+      setChangingRole(null);
+    }
+  };
+
+  const getAvailableRoles = (currentRoles: string[]) => {
+    const allRoles = ['staff', 'approver', 'admin'];
+    return {
+      canAdd: allRoles.filter(role => !currentRoles.includes(role)),
+      canRemove: currentRoles.filter(role => currentRoles.length > 1) // Can only remove if user has more than 1 role
+    };
+  };
+
   if (loading) {
     return (
       <Layout>
@@ -145,16 +183,86 @@ const UserManagement = () => {
                 </div>
               </CardHeader>
               <CardContent>
-                <Button
-                  onClick={() => handleSendPasswordReset(userProfile.email, userProfile.id)}
-                  disabled={sendingReset === userProfile.id}
-                  variant="outline"
-                  size="sm"
-                  className="gap-2"
-                >
-                  <Mail className="h-4 w-4" />
-                  {sendingReset === userProfile.id ? 'Sending...' : 'Send Password Reset Link'}
-                </Button>
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    onClick={() => handleSendPasswordReset(userProfile.email, userProfile.id)}
+                    disabled={sendingReset === userProfile.id}
+                    variant="outline"
+                    size="sm"
+                    className="gap-2"
+                  >
+                    <Mail className="h-4 w-4" />
+                    {sendingReset === userProfile.id ? 'Sending...' : 'Send Password Reset Link'}
+                  </Button>
+
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="gap-2"
+                        disabled={changingRole === userProfile.id || userProfile.id === user?.id}
+                      >
+                        <UserCog className="h-4 w-4" />
+                        Manage Roles
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="start" className="w-56">
+                      {(() => {
+                        const { canAdd, canRemove } = getAvailableRoles(userProfile.roles);
+                        return (
+                          <>
+                            {canAdd.length > 0 && (
+                              <>
+                                <DropdownMenuLabel>Add Role</DropdownMenuLabel>
+                                {canAdd.map((role) => (
+                                  <DropdownMenuItem
+                                    key={`add-${role}`}
+                                    onClick={() => handleRoleChange(userProfile.id, role, 'add')}
+                                    disabled={changingRole === userProfile.id}
+                                  >
+                                    <span className="text-green-600 mr-2">+</span>
+                                    Add {role}
+                                  </DropdownMenuItem>
+                                ))}
+                              </>
+                            )}
+                            
+                            {canAdd.length > 0 && canRemove.length > 0 && <DropdownMenuSeparator />}
+                            
+                            {canRemove.length > 0 && (
+                              <>
+                                <DropdownMenuLabel>Remove Role</DropdownMenuLabel>
+                                {canRemove.map((role) => (
+                                  <DropdownMenuItem
+                                    key={`remove-${role}`}
+                                    onClick={() => handleRoleChange(userProfile.id, role, 'remove')}
+                                    disabled={changingRole === userProfile.id}
+                                  >
+                                    <span className="text-red-600 mr-2">−</span>
+                                    Remove {role}
+                                  </DropdownMenuItem>
+                                ))}
+                              </>
+                            )}
+                            
+                            {canAdd.length === 0 && canRemove.length === 0 && (
+                              <DropdownMenuItem disabled>
+                                No role changes available
+                              </DropdownMenuItem>
+                            )}
+                          </>
+                        );
+                      })()}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+
+                  {userProfile.id === user?.id && (
+                    <p className="text-xs text-muted-foreground mt-2 w-full">
+                      You cannot change your own roles
+                    </p>
+                  )}
+                </div>
               </CardContent>
             </Card>
           ))}
