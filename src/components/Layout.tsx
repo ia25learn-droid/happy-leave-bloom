@@ -2,7 +2,7 @@ import { ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
-import { Calendar, Home, PlusCircle, CheckSquare, Shield, LogOut } from 'lucide-react';
+import { Calendar, Home, PlusCircle, CheckSquare, Shield, LogOut, Users } from 'lucide-react';
 
 interface LayoutProps {
   children: ReactNode;
@@ -19,7 +19,8 @@ const Layout = ({ children }: LayoutProps) => {
     { path: '/apply', icon: PlusCircle, label: 'Apply Leave', roles: ['staff', 'admin', 'approver'] },
     { path: '/calendar', icon: Calendar, label: 'Calendar', roles: ['staff', 'admin', 'approver'] },
     { path: '/approvals', icon: CheckSquare, label: 'Approvals', roles: ['approver', 'admin'] },
-    { path: '/block-periods', icon: Shield, label: 'Block Periods', roles: ['admin', 'approver'] }
+    { path: '/block-periods', icon: Shield, label: 'Block Periods', roles: ['admin', 'approver'] },
+    { path: '/users', icon: Users, label: 'Users', roles: ['admin'] }
   ];
 
   const visibleNavItems = navItems.filter(item => 

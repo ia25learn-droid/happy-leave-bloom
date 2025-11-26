@@ -11,6 +11,7 @@ import ApplyLeave from "./pages/ApplyLeave";
 import Calendar from "./pages/Calendar";
 import Approvals from "./pages/Approvals";
 import BlockPeriods from "./pages/BlockPeriods";
+import UserManagement from "./pages/UserManagement";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -30,6 +31,7 @@ const App = () => (
             <Route path="/calendar" element={<Calendar />} />
             <Route path="/approvals" element={<Approvals />} />
             <Route path="/block-periods" element={<BlockPeriods />} />
+            <Route path="/users" element={<UserManagement />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
