@@ -4,10 +4,12 @@ import { supabase } from '@/integrations/supabase/client';
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import TeamStrength from '@/components/TeamStrength';
 import { leaveTypes, getLeaveTypeConfig } from '@/lib/leaveTypes';
 import { format, isToday, isTomorrow, startOfDay } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
+import { useToast } from '@/hooks/use-toast';
 
 interface LeaveRequest {
   id: string;
@@ -21,6 +23,7 @@ interface LeaveRequest {
 const Dashboard = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [leaveRequests, setLeaveRequests] = useState<LeaveRequest[]>([]);
   const [todayStrength, setTodayStrength] = useState({ available: 11, total: 11 });
   const [tomorrowStrength, setTomorrowStrength] = useState({ available: 11, total: 11 });
@@ -78,6 +81,31 @@ const Dashboard = () => {
 
     setTodayStrength({ available: 11 - (todayLeave?.length || 0), total: 11 });
     setTomorrowStrength({ available: 11 - (tomorrowLeave?.length || 0), total: 11 });
+  };
+
+  const handleCancelLeave = async (requestId: string) => {
+    try {
+      const { error } = await supabase
+        .from('leave_requests')
+        .update({ status: 'cancelled' })
+        .eq('id', requestId);
+
+      if (error) throw error;
+
+      toast({
+        title: 'Leave cancelled',
+        description: 'Your leave request has been cancelled successfully.',
+      });
+
+      fetchLeaveRequests();
+      fetchTeamStrength();
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: error.message,
+        variant: 'destructive',
+      });
+    }
   };
 
   const getStatusBadge = (status: string) => {
@@ -208,7 +236,18 @@ const Dashboard = () => {
                             {format(new Date(request.start_date), 'MMM dd, yyyy')} - {format(new Date(request.end_date), 'MMM dd, yyyy')}
                           </p>
                         </div>
-                        {getStatusBadge(request.status)}
+                        <div className="flex items-center gap-2">
+                          {getStatusBadge(request.status)}
+                          {(request.status === 'pending' || request.status === 'approved') && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleCancelLeave(request.id)}
+                            >
+                              Cancel
+                            </Button>
+                          )}
+                        </div>
                       </div>
                     </div>
                   );
