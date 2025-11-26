@@ -56,8 +56,8 @@ const Calendar = () => {
       }));
 
       strengthByDate[dateStr] = {
-        available: 11 - leavesOnDay.length,
-        total: 11
+        available: 10 - leavesOnDay.length,
+        total: 10
       };
     });
 
@@ -126,7 +126,7 @@ const Calendar = () => {
               {calendarDays.map((day, index) => {
                 const dateStr = format(day, 'yyyy-MM-dd');
                 const leavesOnDay = leaveData[dateStr] || [];
-                const strength = strengthData[dateStr] || { available: 11, total: 11 };
+                const strength = strengthData[dateStr] || { available: 10, total: 10 };
                 const isCurrentMonth = isSameMonth(day, currentDate);
                 const isDayToday = isToday(day);
 

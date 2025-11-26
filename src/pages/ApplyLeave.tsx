@@ -90,7 +90,7 @@ const ApplyLeave = () => {
         .gte('end_date', dateStr);
 
       const onLeave = data?.length || 0;
-      strengths[dateStr] = { available: 11 - onLeave, total: 11 };
+      strengths[dateStr] = { available: 10 - onLeave, total: 10 };
 
       if (onLeave >= 2) {
         hasHighCapacity = true;

@@ -73,9 +73,9 @@ export const getLeaveTypeConfig = (type: LeaveType): LeaveTypeConfig => {
 
 export const getStrengthColor = (available: number, total: number): string => {
   const ratio = available / total;
-  if (ratio >= 0.82) return 'hsl(var(--strength-full))'; // 9-11 available
-  if (ratio >= 0.64) return 'hsl(var(--strength-good))'; // 7-8 available
-  if (ratio >= 0.45) return 'hsl(var(--strength-lean))'; // 5-6 available
+  if (ratio >= 0.80) return 'hsl(var(--strength-full))'; // 8-10 available
+  if (ratio >= 0.60) return 'hsl(var(--strength-good))'; // 6-7 available
+  if (ratio >= 0.40) return 'hsl(var(--strength-lean))'; // 4-5 available
   return 'hsl(var(--strength-low))'; // 4 or fewer
 };
 
