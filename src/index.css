@@ -77,9 +77,13 @@ All colors MUST be HSL.
     @apply border-border;
   }
 
-  body {
-    @apply bg-background text-foreground font-sans;
+  html {
+    @apply bg-background;
     background: linear-gradient(180deg, hsl(280, 60%, 98%) 0%, hsl(270, 50%, 96%) 100%);
+  }
+
+  body {
+    @apply bg-transparent text-foreground font-sans;
   }
 }
 
