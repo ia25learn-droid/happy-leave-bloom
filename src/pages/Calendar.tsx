@@ -156,14 +156,14 @@ const Calendar = () => {
 
                     {/* Leave badges */}
                     {isCurrentMonth && leavesOnDay.length > 0 && (
-                      <div className="space-y-1">
-                        {leavesOnDay.slice(0, 3).map((leave, idx) => {
+                      <div className="space-y-0.5">
+                        {leavesOnDay.map((leave, idx) => {
                           const config = getLeaveTypeConfig(leave.leave_type as any);
                           const isCompact = leavesOnDay.length > 3;
                           return (
                             <div
                               key={idx}
-                              className={`${isCompact ? 'text-[10px] px-1 py-0.5' : 'text-xs px-2 py-1'} rounded text-center font-medium hover:scale-105 transition-transform cursor-pointer`}
+                              className={`${isCompact ? 'text-[9px] px-1 py-0.5' : 'text-xs px-2 py-1'} rounded text-center font-medium hover:scale-105 transition-transform cursor-pointer`}
                               style={{ backgroundColor: config.color }}
                               title={`${leave.full_name} - ${config.label}`}
                             >
@@ -171,11 +171,6 @@ const Calendar = () => {
                             </div>
                           );
                         })}
-                        {leavesOnDay.length > 3 && (
-                          <div className="text-[10px] text-center text-muted-foreground">
-                            +{leavesOnDay.length - 3} more
-                          </div>
-                        )}
                       </div>
                     )}
                   </div>
