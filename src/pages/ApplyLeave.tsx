@@ -117,6 +117,28 @@ const ApplyLeave = () => {
     setIsSubmitting(true);
 
     try {
+      // Check for overlapping leave requests
+      const selectedStartDate = format(startDate, 'yyyy-MM-dd');
+      const selectedEndDate = format(endDate, 'yyyy-MM-dd');
+
+      const { data: existingLeaves, error: checkError } = await supabase
+        .from('leave_requests')
+        .select('*')
+        .eq('user_id', user.id)
+        .in('status', ['approved', 'pending'])
+        .lte('start_date', selectedEndDate)
+        .gte('end_date', selectedStartDate);
+
+      if (checkError) throw checkError;
+
+      if (existingLeaves && existingLeaves.length > 0) {
+        toast.error('Oops! You already have leave on these dates! 🌈', {
+          description: 'Please choose different dates or cancel your existing request first!'
+        });
+        setIsSubmitting(false);
+        return;
+      }
+
       // Auto-approve only if user is an approver (not admin)
       const isApprover = hasRole('approver');
       const requestStatus = isApprover ? 'approved' : 'pending';
@@ -126,8 +148,8 @@ const ApplyLeave = () => {
         .insert([{
           user_id: user.id,
           leave_type: leaveType,
-          start_date: format(startDate, 'yyyy-MM-dd'),
-          end_date: format(endDate, 'yyyy-MM-dd'),
+          start_date: selectedStartDate,
+          end_date: selectedEndDate,
           reason,
           status: requestStatus,
           approved_by: isApprover ? user.id : null,
