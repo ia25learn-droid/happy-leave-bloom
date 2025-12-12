@@ -7,6 +7,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isToday, startOfWeek, endOfWeek } from 'date-fns';
 import { getLeaveTypeConfig } from '@/lib/leaveTypes';
 import TeamStrength from '@/components/TeamStrength';
+import { getHolidayForDate } from '@/lib/holidays';
 
 interface LeaveOnDate {
   user_initials: string;
@@ -129,6 +130,7 @@ const Calendar = () => {
                 const strength = strengthData[dateStr] || { available: 10, total: 10 };
                 const isCurrentMonth = isSameMonth(day, currentDate);
                 const isDayToday = isToday(day);
+                const holiday = getHolidayForDate(day);
 
                 return (
                   <div
@@ -137,11 +139,12 @@ const Calendar = () => {
                       min-h-[100px] p-2 rounded-lg border transition-all
                       ${isCurrentMonth ? 'bg-card' : 'bg-muted/30'}
                       ${isDayToday ? 'ring-2 ring-primary shadow-md' : ''}
+                      ${holiday ? 'bg-rose-50 dark:bg-rose-950/30 border-rose-200 dark:border-rose-800' : ''}
                       hover:shadow-lg hover:scale-105
                     `}
                   >
                     <div className="flex items-start justify-between mb-1">
-                      <span className={`text-sm font-medium ${isDayToday ? 'text-primary font-bold' : ''}`}>
+                      <span className={`text-sm font-medium ${isDayToday ? 'text-primary font-bold' : ''} ${holiday ? 'text-rose-600 dark:text-rose-400' : ''}`}>
                         {format(day, 'd')}
                       </span>
                       {isCurrentMonth && (
@@ -153,6 +156,16 @@ const Calendar = () => {
                         />
                       )}
                     </div>
+
+                    {/* Holiday badge */}
+                    {holiday && (
+                      <div 
+                        className="text-[10px] px-1 py-0.5 rounded bg-rose-100 dark:bg-rose-900/50 text-rose-700 dark:text-rose-300 font-medium mb-1 truncate"
+                        title={holiday.name}
+                      >
+                        🎉 {holiday.name}
+                      </div>
+                    )}
 
                     {/* Leave badges */}
                     {isCurrentMonth && leavesOnDay.length > 0 && (
