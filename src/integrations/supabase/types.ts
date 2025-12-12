@@ -52,6 +52,7 @@ export type Database = {
       leave_requests: {
         Row: {
           approved_by: string | null
+          backup_note: string | null
           created_at: string | null
           end_date: string
           id: string
@@ -65,6 +66,7 @@ export type Database = {
         }
         Insert: {
           approved_by?: string | null
+          backup_note?: string | null
           created_at?: string | null
           end_date: string
           id?: string
@@ -78,6 +80,7 @@ export type Database = {
         }
         Update: {
           approved_by?: string | null
+          backup_note?: string | null
           created_at?: string | null
           end_date?: string
           id?: string

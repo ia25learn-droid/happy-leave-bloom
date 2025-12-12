@@ -19,6 +19,7 @@ interface LeaveRequest {
   reason: string;
   status: string;
   created_at: string;
+  backup_note: string | null;
   profiles: {
     full_name: string;
     email: string;
@@ -197,6 +198,12 @@ const Approvals = () => {
                               <div className="md:col-span-2">
                                 <p className="text-sm text-muted-foreground mb-1">Reason</p>
                                 <p className="text-sm">{request.reason}</p>
+                              </div>
+                            )}
+                            {request.backup_note && (
+                              <div className="md:col-span-2 p-3 bg-primary/10 rounded-lg border border-primary/20">
+                                <p className="text-sm text-muted-foreground mb-1">📋 Backup Arrangement</p>
+                                <p className="text-sm font-medium">{request.backup_note}</p>
                               </div>
                             )}
                           </div>

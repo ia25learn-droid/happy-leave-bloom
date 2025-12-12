@@ -10,12 +10,13 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { format, eachDayOfInterval, startOfDay } from 'date-fns';
+import { format, eachDayOfInterval, startOfDay, differenceInDays } from 'date-fns';
 import { CalendarIcon, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { leaveTypes, LeaveType } from '@/lib/leaveTypes';
 import TeamStrength from '@/components/TeamStrength';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Switch } from '@/components/ui/switch';
 
 interface BlockPeriod {
   start_date: string;
@@ -33,6 +34,11 @@ const ApplyLeave = () => {
   const [blockPeriods, setBlockPeriods] = useState<BlockPeriod[]>([]);
   const [capacityWarning, setCapacityWarning] = useState(false);
   const [dateStrengths, setDateStrengths] = useState<Record<string, { available: number; total: number }>>({});
+  const [hasBackup, setHasBackup] = useState(false);
+  const [backupNote, setBackupNote] = useState('');
+
+  const leaveDays = startDate && endDate ? differenceInDays(endDate, startDate) + 1 : 0;
+  const showBackupOption = leaveDays > 4;
 
   useEffect(() => {
     fetchBlockPeriods();
@@ -153,7 +159,8 @@ const ApplyLeave = () => {
           reason,
           status: requestStatus,
           approved_by: isApprover ? user.id : null,
-          reviewed_at: isApprover ? new Date().toISOString() : null
+          reviewed_at: isApprover ? new Date().toISOString() : null,
+          backup_note: showBackupOption && hasBackup ? backupNote : null
         }]);
 
       if (error) throw error;
@@ -168,6 +175,8 @@ const ApplyLeave = () => {
       setEndDate(undefined);
       setReason('');
       setCapacityWarning(false);
+      setHasBackup(false);
+      setBackupNote('');
     } catch (error: any) {
       toast.error('Failed to submit request', {
         description: error.message
@@ -317,6 +326,35 @@ const ApplyLeave = () => {
                   rows={3}
                 />
               </div>
+
+              {/* Backup Option for >4 days */}
+              {showBackupOption && (
+                <Card className="border-primary/20 bg-primary/5">
+                  <CardContent className="pt-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <div>
+                        <Label className="text-base font-medium">Backup Arrangement 📋</Label>
+                        <p className="text-sm text-muted-foreground">
+                          For leaves over 4 days, you can specify backup arrangements
+                        </p>
+                      </div>
+                      <Switch
+                        checked={hasBackup}
+                        onCheckedChange={setHasBackup}
+                      />
+                    </div>
+                    {hasBackup && (
+                      <Textarea
+                        placeholder="Describe your backup arrangement (e.g., 'John will cover my tasks during my absence')"
+                        value={backupNote}
+                        onChange={(e) => setBackupNote(e.target.value)}
+                        rows={2}
+                        className="mt-2"
+                      />
+                    )}
+                  </CardContent>
+                </Card>
+              )}
 
               {/* Submit Button */}
               <Button 
