@@ -14,10 +14,28 @@ const Auth = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const isPasswordReset = searchParams.get('reset') === 'true';
+  const [isPasswordReset, setIsPasswordReset] = useState(searchParams.get('reset') === 'true');
 
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+
+  // Handle password recovery event from Supabase
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log('Auth event:', event);
+      if (event === 'PASSWORD_RECOVERY') {
+        setIsPasswordReset(true);
+      }
+    });
+
+    // Also check hash for recovery token on mount
+    const hash = window.location.hash;
+    if (hash && hash.includes('type=recovery')) {
+      setIsPasswordReset(true);
+    }
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   const [signInData, setSignInData] = useState({
     email: '',
