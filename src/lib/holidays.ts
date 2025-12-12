@@ -6,8 +6,8 @@ export interface Holiday {
 
 export const malaysianHolidays2025: Holiday[] = [
   { date: '01-01', name: "New Year's Day" },
-  { date: '01-29', name: 'Thaipusam' },
-  { date: '01-30', name: 'Thaipusam (Observed)' },
+  { date: '02-01', name: 'Thaipusam' },
+  { date: '02-02', name: 'Thaipusam (Observed)' },
   { date: '02-17', name: 'Chinese New Year' },
   { date: '02-18', name: 'Chinese New Year (2nd Day)' },
   { date: '03-07', name: 'Nuzul Al-Quran' },
