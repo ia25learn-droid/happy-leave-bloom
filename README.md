@@ -95,6 +95,10 @@ The app will be available at `http://localhost:8080`
 - 🟠 **4-5 available**: Running lean but we've got this! 💪
 - 🔴 **3 or fewer**: Small but mighty crew today! 🚨
 
+## 📋 Notes
+
+- **Approval Queue**: In the approval sheet, requests are sorted with the earliest submissions at the top (first-come, first-served order)
+
 ## 🔒 Constraints
 
 - Maximum 10 user accounts
