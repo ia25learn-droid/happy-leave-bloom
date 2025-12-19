@@ -16,7 +16,7 @@ A joyful, cheerful, and delightful leave management system designed to spread ha
 - **Approve/Reject Requests** - Review and manage pending leave requests
 - **Self-Approval** - Approvers can self-approve their own leave
 - **Block Periods** - Set periods where leave cannot be requested
-- **Backup Notes** - View backup plans for long leave requests (4+ days)
+- **Backup Notes** - View backup plans for long leave requests (2+ days)
 
 ### For Admins
 - **User Management** - Manage users and change roles
