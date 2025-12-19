@@ -38,7 +38,7 @@ const ApplyLeave = () => {
   const [backupNote, setBackupNote] = useState('');
 
   const leaveDays = startDate && endDate ? differenceInDays(endDate, startDate) + 1 : 0;
-  const showBackupOption = leaveDays > 4;
+  const showBackupOption = leaveDays >= 2;
 
   useEffect(() => {
     fetchBlockPeriods();
@@ -335,7 +335,7 @@ const ApplyLeave = () => {
                       <div>
                         <Label className="text-base font-medium">Backup Arrangement 📋</Label>
                         <p className="text-sm text-muted-foreground">
-                          For leaves over 4 days, you can specify backup arrangements
+                          For leaves of 2+ days, you can specify backup arrangements
                         </p>
                       </div>
                       <Switch
