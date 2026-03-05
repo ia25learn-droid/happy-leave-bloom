@@ -163,8 +163,11 @@ const Auth = () => {
                     placeholder="Confirm new password"
                   />
                 </div>
-                <Button type="submit" className="w-full btn-joy" disabled={isLoading}>
-                  {isLoading ? 'Updating...' : 'Update Password 🚀'}
+                {!authReady && (
+                  <p className="text-sm text-amber-600 text-center">⏳ Restoring your session, please wait...</p>
+                )}
+                <Button type="submit" className="w-full btn-joy" disabled={isLoading || !authReady}>
+                  {isLoading ? 'Updating...' : !authReady ? 'Waiting for session...' : 'Update Password 🚀'}
                 </Button>
               </form>
             </CardContent>
