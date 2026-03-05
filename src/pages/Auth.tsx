@@ -22,12 +22,27 @@ const Auth = () => {
 
   // Handle password recovery event from Supabase
   useEffect(() => {
-    // First restore session from storage
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
-        setAuthReady(true);
-      }
-    });
+    const hash = window.location.hash;
+    const isRecovery = hash && hash.includes('type=recovery');
+
+    if (isRecovery) {
+      setIsPasswordReset(true);
+      // Actively set session from URL hash — much faster than waiting for onAuthStateChange
+      supabase.auth.setSession({
+        access_token: new URLSearchParams(hash.substring(1)).get('access_token') || '',
+        refresh_token: new URLSearchParams(hash.substring(1)).get('refresh_token') || '',
+      }).then(({ data, error }) => {
+        if (data?.session) {
+          setAuthReady(true);
+        } else {
+          console.error('Failed to set session from hash:', error);
+        }
+      });
+    } else {
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        if (session) setAuthReady(true);
+      });
+    }
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       console.log('Auth page event:', event);
@@ -35,16 +50,8 @@ const Auth = () => {
         setIsPasswordReset(true);
         setAuthReady(true);
       }
-      if (session) {
-        setAuthReady(true);
-      }
+      if (session) setAuthReady(true);
     });
-
-    // Also check hash for recovery token on mount
-    const hash = window.location.hash;
-    if (hash && hash.includes('type=recovery')) {
-      setIsPasswordReset(true);
-    }
 
     return () => subscription.unsubscribe();
   }, []);
