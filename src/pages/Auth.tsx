@@ -164,7 +164,7 @@ const Auth = () => {
                   />
                 </div>
                 {!authReady && (
-                  <p className="text-sm text-amber-600 text-center">⏳ Restoring your session, please wait...</p>
+                  <p className="text-sm text-muted-foreground text-center">⏳ Restoring your session, please wait...</p>
                 )}
                 <Button type="submit" className="w-full btn-joy" disabled={isLoading || !authReady}>
                   {isLoading ? 'Updating...' : !authReady ? 'Waiting for session...' : 'Update Password 🚀'}
