@@ -98,6 +98,11 @@ const Auth = () => {
       return;
     }
 
+    if (!authReady) {
+      toast.error('Session is still loading, please wait a moment and try again.');
+      return;
+    }
+
     setIsLoading(true);
     try {
       const { error } = await supabase.auth.updateUser({
@@ -158,8 +163,11 @@ const Auth = () => {
                     placeholder="Confirm new password"
                   />
                 </div>
-                <Button type="submit" className="w-full btn-joy" disabled={isLoading}>
-                  {isLoading ? 'Updating...' : 'Update Password 🚀'}
+                {!authReady && (
+                  <p className="text-sm text-muted-foreground text-center">⏳ Restoring your session, please wait...</p>
+                )}
+                <Button type="submit" className="w-full btn-joy" disabled={isLoading || !authReady}>
+                  {isLoading ? 'Updating...' : !authReady ? 'Waiting for session...' : 'Update Password 🚀'}
                 </Button>
               </form>
             </CardContent>
