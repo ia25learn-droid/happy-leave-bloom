@@ -289,6 +289,16 @@ const Auth = () => {
                   <Button type="submit" className="w-full btn-joy" disabled={isLoading}>
                     {isLoading ? 'Signing in...' : 'Sign In 🚀'}
                   </Button>
+                  <button
+                    type="button"
+                    className="w-full text-sm text-muted-foreground hover:text-primary transition-colors"
+                    onClick={() => {
+                      setIsForgotPassword(true);
+                      setForgotEmail(signInData.email);
+                    }}
+                  >
+                    Forgot your password?
+                  </button>
                 </form>
               </TabsContent>
 
