@@ -20,22 +20,24 @@ const Auth = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [authReady, setAuthReady] = useState(false);
 
+  const [showRecoveryWarning, setShowRecoveryWarning] = useState(false);
+  const [pendingRecoveryHash, setPendingRecoveryHash] = useState('');
+
   // Handle password recovery event from Supabase
   useEffect(() => {
     const hash = window.location.hash;
     const isRecovery = hash && hash.includes('type=recovery');
 
     if (isRecovery) {
-      setIsPasswordReset(true);
-      // Actively set session from URL hash — much faster than waiting for onAuthStateChange
-      supabase.auth.setSession({
-        access_token: new URLSearchParams(hash.substring(1)).get('access_token') || '',
-        refresh_token: new URLSearchParams(hash.substring(1)).get('refresh_token') || '',
-      }).then(({ data, error }) => {
-        if (data?.session) {
-          setAuthReady(true);
+      // Check if there's already an active session (admin opening a user's link)
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        if (session) {
+          // Warn the logged-in user before replacing their session
+          setShowRecoveryWarning(true);
+          setPendingRecoveryHash(hash);
         } else {
-          console.error('Failed to set session from hash:', error);
+          // No active session, proceed normally
+          applyRecoveryHash(hash);
         }
       });
     } else {
@@ -55,6 +57,28 @@ const Auth = () => {
 
     return () => subscription.unsubscribe();
   }, []);
+
+  const applyRecoveryHash = (hash: string) => {
+    setIsPasswordReset(true);
+    setShowRecoveryWarning(false);
+    supabase.auth.setSession({
+      access_token: new URLSearchParams(hash.substring(1)).get('access_token') || '',
+      refresh_token: new URLSearchParams(hash.substring(1)).get('refresh_token') || '',
+    }).then(({ data, error }) => {
+      if (data?.session) {
+        setAuthReady(true);
+      } else {
+        console.error('Failed to set session from hash:', error);
+      }
+    });
+  };
+
+  const cancelRecovery = () => {
+    setShowRecoveryWarning(false);
+    // Clear the hash and redirect back to dashboard
+    window.location.hash = '';
+    navigate('/dashboard');
+  };
 
   const [signInData, setSignInData] = useState({
     email: '',
