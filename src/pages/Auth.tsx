@@ -151,6 +151,37 @@ const Auth = () => {
     }
   };
 
+  // Show warning if logged-in user opens a recovery link
+  if (showRecoveryWarning) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <div className="w-full max-w-md">
+          <Card className="card-entrance shadow-lg">
+            <CardHeader>
+              <CardTitle>⚠️ Warning: Password Reset Link</CardTitle>
+              <CardDescription>
+                You are currently logged in. Opening this reset link will <strong>log you out</strong> and switch to the other user's account for password reset.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                This link is meant to be shared with the user who needs to reset their password. If you are an admin, copy and send this link to the user instead.
+              </p>
+              <div className="flex gap-2">
+                <Button variant="outline" className="flex-1" onClick={cancelRecovery}>
+                  Go Back to Dashboard
+                </Button>
+                <Button variant="destructive" className="flex-1" onClick={() => applyRecoveryHash(pendingRecoveryHash)}>
+                  Continue Anyway
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
   // If in password reset mode, show different UI
   if (isPasswordReset) {
     return (
