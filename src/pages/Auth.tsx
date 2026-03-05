@@ -18,13 +18,25 @@ const Auth = () => {
 
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [authReady, setAuthReady] = useState(false);
 
   // Handle password recovery event from Supabase
   useEffect(() => {
+    // First restore session from storage
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        setAuthReady(true);
+      }
+    });
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log('Auth event:', event);
+      console.log('Auth page event:', event);
       if (event === 'PASSWORD_RECOVERY') {
         setIsPasswordReset(true);
+        setAuthReady(true);
+      }
+      if (session) {
+        setAuthReady(true);
       }
     });
 
@@ -60,6 +72,11 @@ const Auth = () => {
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!authReady) {
+      toast.error('Session is still loading, please wait a moment and try again.');
+      return;
+    }
+
     setIsLoading(true);
     try {
       await signUp(signUpData.email, signUpData.password, signUpData.fullName);
