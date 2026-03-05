@@ -60,9 +60,8 @@ serve(async (req) => {
 
     console.log('Admin', user.email, 'generating password reset link for:', email);
 
-    // Use the origin from the request so it works on any deployment
-    const origin = req.headers.get('origin') || req.headers.get('referer')?.replace(/\/[^/]*$/, '') || 'https://leave-manager.netlify.app';
-    const redirectUrl = `${origin}/auth?reset=true`;
+    // Use the deployed Netlify URL for password reset redirects
+    const redirectUrl = 'https://leave-manager.netlify.app/auth?reset=true';
     
     console.log('Using redirect URL:', redirectUrl);
 

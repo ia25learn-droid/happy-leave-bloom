@@ -15,38 +15,19 @@ const Auth = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const [isPasswordReset, setIsPasswordReset] = useState(searchParams.get('reset') === 'true');
-  const [isForgotPassword, setIsForgotPassword] = useState(false);
-  const [forgotEmail, setForgotEmail] = useState('');
 
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [authReady, setAuthReady] = useState(false);
 
-  const [showRecoveryWarning, setShowRecoveryWarning] = useState(false);
-  const [pendingRecoveryHash, setPendingRecoveryHash] = useState('');
-
   // Handle password recovery event from Supabase
   useEffect(() => {
-    const hash = window.location.hash;
-    const isRecovery = hash && hash.includes('type=recovery');
-
-    if (isRecovery) {
-      // Check if there's already an active session (admin opening a user's link)
-      supabase.auth.getSession().then(({ data: { session } }) => {
-        if (session) {
-          // Warn the logged-in user before replacing their session
-          setShowRecoveryWarning(true);
-          setPendingRecoveryHash(hash);
-        } else {
-          // No active session, proceed normally
-          applyRecoveryHash(hash);
-        }
-      });
-    } else {
-      supabase.auth.getSession().then(({ data: { session } }) => {
-        if (session) setAuthReady(true);
-      });
-    }
+    // First restore session from storage
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        setAuthReady(true);
+      }
+    });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       console.log('Auth page event:', event);
@@ -54,33 +35,19 @@ const Auth = () => {
         setIsPasswordReset(true);
         setAuthReady(true);
       }
-      if (session) setAuthReady(true);
+      if (session) {
+        setAuthReady(true);
+      }
     });
+
+    // Also check hash for recovery token on mount
+    const hash = window.location.hash;
+    if (hash && hash.includes('type=recovery')) {
+      setIsPasswordReset(true);
+    }
 
     return () => subscription.unsubscribe();
   }, []);
-
-  const applyRecoveryHash = (hash: string) => {
-    setIsPasswordReset(true);
-    setShowRecoveryWarning(false);
-    supabase.auth.setSession({
-      access_token: new URLSearchParams(hash.substring(1)).get('access_token') || '',
-      refresh_token: new URLSearchParams(hash.substring(1)).get('refresh_token') || '',
-    }).then(({ data, error }) => {
-      if (data?.session) {
-        setAuthReady(true);
-      } else {
-        console.error('Failed to set session from hash:', error);
-      }
-    });
-  };
-
-  const cancelRecovery = () => {
-    setShowRecoveryWarning(false);
-    // Clear the hash and redirect back to dashboard
-    window.location.hash = '';
-    navigate('/dashboard');
-  };
 
   const [signInData, setSignInData] = useState({
     email: '',
@@ -152,109 +119,6 @@ const Auth = () => {
       setIsLoading(false);
     }
   };
-
-  const handleForgotPassword = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!forgotEmail) {
-      toast.error('Please enter your email address');
-      return;
-    }
-    setIsLoading(true);
-    try {
-      const redirectTo = `${window.location.origin}/auth?reset=true`;
-      console.log('Sending password reset to:', forgotEmail, 'with redirect:', redirectTo);
-      const { data, error } = await supabase.auth.resetPasswordForEmail(forgotEmail, {
-        redirectTo,
-      });
-      console.log('Reset password response:', { data, error });
-      if (error) throw error;
-      toast.success('If an account exists with this email, you will receive a password reset link shortly. Check your inbox and spam folder 📧');
-      setIsForgotPassword(false);
-    } catch (error: any) {
-      console.error('Reset password error:', error);
-      toast.error(error.message || 'Failed to send reset email');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Show forgot password form
-  if (isForgotPassword) {
-    return (
-      <div className="min-h-screen flex items-center justify-center p-4">
-        <div className="w-full max-w-md">
-          <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent mb-2">
-              🔑 Forgot Password
-            </h1>
-            <p className="text-muted-foreground">We'll send you a reset link</p>
-          </div>
-          <Card className="card-entrance shadow-lg">
-            <CardHeader>
-              <CardTitle>Reset Your Password</CardTitle>
-              <CardDescription>Enter your email and we'll send you a link to reset your password</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleForgotPassword} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="forgot-email">Email</Label>
-                  <Input
-                    id="forgot-email"
-                    type="email"
-                    placeholder="your.email@company.com"
-                    value={forgotEmail}
-                    onChange={(e) => setForgotEmail(e.target.value)}
-                    required
-                  />
-                </div>
-                <Button type="submit" className="w-full btn-joy" disabled={isLoading}>
-                  {isLoading ? 'Sending...' : 'Send Reset Link 📧'}
-                </Button>
-                <button
-                  type="button"
-                  className="w-full text-sm text-muted-foreground hover:text-primary transition-colors"
-                  onClick={() => setIsForgotPassword(false)}
-                >
-                  ← Back to Sign In
-                </button>
-              </form>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-    );
-  }
-
-  // Show warning if logged-in user opens a recovery link
-  if (showRecoveryWarning) {
-    return (
-      <div className="min-h-screen flex items-center justify-center p-4">
-        <div className="w-full max-w-md">
-          <Card className="card-entrance shadow-lg">
-            <CardHeader>
-              <CardTitle>⚠️ Warning: Password Reset Link</CardTitle>
-              <CardDescription>
-                You are currently logged in. Opening this reset link will <strong>log you out</strong> and switch to the other user's account for password reset.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-sm text-muted-foreground">
-                This link is meant to be shared with the user who needs to reset their password. If you are an admin, copy and send this link to the user instead.
-              </p>
-              <div className="flex gap-2">
-                <Button variant="outline" className="flex-1" onClick={cancelRecovery}>
-                  Go Back to Dashboard
-                </Button>
-                <Button variant="destructive" className="flex-1" onClick={() => applyRecoveryHash(pendingRecoveryHash)}>
-                  Continue Anyway
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-    );
-  }
 
   // If in password reset mode, show different UI
   if (isPasswordReset) {
@@ -361,16 +225,6 @@ const Auth = () => {
                   <Button type="submit" className="w-full btn-joy" disabled={isLoading}>
                     {isLoading ? 'Signing in...' : 'Sign In 🚀'}
                   </Button>
-                  <button
-                    type="button"
-                    className="w-full text-sm text-muted-foreground hover:text-primary transition-colors"
-                    onClick={() => {
-                      setIsForgotPassword(true);
-                      setForgotEmail(signInData.email);
-                    }}
-                  >
-                    Forgot your password?
-                  </button>
                 </form>
               </TabsContent>
 
