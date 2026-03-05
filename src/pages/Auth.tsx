@@ -98,6 +98,11 @@ const Auth = () => {
       return;
     }
 
+    if (!authReady) {
+      toast.error('Session is still loading, please wait a moment and try again.');
+      return;
+    }
+
     setIsLoading(true);
     try {
       const { error } = await supabase.auth.updateUser({
