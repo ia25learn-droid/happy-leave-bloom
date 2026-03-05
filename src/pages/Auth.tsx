@@ -72,6 +72,11 @@ const Auth = () => {
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!authReady) {
+      toast.error('Session is still loading, please wait a moment and try again.');
+      return;
+    }
+
     setIsLoading(true);
     try {
       await signUp(signUpData.email, signUpData.password, signUpData.fullName);
