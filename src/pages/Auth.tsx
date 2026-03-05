@@ -15,6 +15,8 @@ const Auth = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const [isPasswordReset, setIsPasswordReset] = useState(searchParams.get('reset') === 'true');
+  const [isForgotPassword, setIsForgotPassword] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState('');
 
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -150,6 +152,74 @@ const Auth = () => {
       setIsLoading(false);
     }
   };
+
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!forgotEmail) {
+      toast.error('Please enter your email address');
+      return;
+    }
+    setIsLoading(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(forgotEmail, {
+        redirectTo: `${window.location.origin}/auth?reset=true`,
+      });
+      if (error) throw error;
+      toast.success('Password reset email sent! Check your inbox 📧');
+      setIsForgotPassword(false);
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to send reset email');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Show forgot password form
+  if (isForgotPassword) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <div className="w-full max-w-md">
+          <div className="text-center mb-8">
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent mb-2">
+              🔑 Forgot Password
+            </h1>
+            <p className="text-muted-foreground">We'll send you a reset link</p>
+          </div>
+          <Card className="card-entrance shadow-lg">
+            <CardHeader>
+              <CardTitle>Reset Your Password</CardTitle>
+              <CardDescription>Enter your email and we'll send you a link to reset your password</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleForgotPassword} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="forgot-email">Email</Label>
+                  <Input
+                    id="forgot-email"
+                    type="email"
+                    placeholder="your.email@company.com"
+                    value={forgotEmail}
+                    onChange={(e) => setForgotEmail(e.target.value)}
+                    required
+                  />
+                </div>
+                <Button type="submit" className="w-full btn-joy" disabled={isLoading}>
+                  {isLoading ? 'Sending...' : 'Send Reset Link 📧'}
+                </Button>
+                <button
+                  type="button"
+                  className="w-full text-sm text-muted-foreground hover:text-primary transition-colors"
+                  onClick={() => setIsForgotPassword(false)}
+                >
+                  ← Back to Sign In
+                </button>
+              </form>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
 
   // Show warning if logged-in user opens a recovery link
   if (showRecoveryWarning) {
@@ -287,6 +357,16 @@ const Auth = () => {
                   <Button type="submit" className="w-full btn-joy" disabled={isLoading}>
                     {isLoading ? 'Signing in...' : 'Sign In 🚀'}
                   </Button>
+                  <button
+                    type="button"
+                    className="w-full text-sm text-muted-foreground hover:text-primary transition-colors"
+                    onClick={() => {
+                      setIsForgotPassword(true);
+                      setForgotEmail(signInData.email);
+                    }}
+                  >
+                    Forgot your password?
+                  </button>
                 </form>
               </TabsContent>
 
